@@ -1,0 +1,22 @@
+    <form class="send" id="send" novalidate>
+      <h3 id="upload">Send your frames</h3>
+      <div class="fields">
+        <label>Project code<input type="text" name="code" autocomplete="off" required></label>
+        <label>Your name<input type="text" name="name" autocomplete="name" required></label>
+        <label>Email<input type="email" name="email" autocomplete="email" required></label>
+        <label>Target<input type="text" name="target" placeholder="e.g. Orion together: M42" required></label>
+        <label>Scope<input type="text" name="scope" placeholder="e.g. Seestar S50, Dwarf 3, 8-inch Newtonian"></label>
+        <label>Where you took it<input type="text" name="location" placeholder="county or country is plenty"></label>
+      </div>
+      <label class="drop" id="drop">
+        <b>Choose the folder of frames</b>
+        <span>or drag it here. Only the <code>.fit</code> frames are sent, with any darks, flats and bias.</span>
+        <input type="file" id="folder" webkitdirectory multiple hidden>
+      </label>
+      <p class="sendmsg" id="picked">No folder chosen yet.</p>
+      <p class="sendmsg">Keep this page open and the computer awake until it says Done. If it stops (the laptop slept, the connection dropped), come back any time within a week, fill in the same name and target, pick the same folder and press Send: it carries on where it stopped.</p>
+      <p class="sendmsg">By sending, you confirm the frames are yours to share, and agree to the <a href="#privacy">privacy note</a>.</p>
+      <button type="submit" id="go" disabled>Send</button>
+      <div class="bar" hidden><i></i></div>
+      <p class="sendmsg" id="status" aria-live="polite"></p>
+    </form>

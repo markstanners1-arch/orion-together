@@ -1,0 +1,117 @@
+<script>
+// Upload box: filters the chosen folder down to the light frames, sends them four at a time to the upload Worker,
+// retries failures, and skips files already sent if the same person sends the same target again the same day.
+(() => {
+  // files up to SMALL go in one request; bigger ones (61 MP cameras, about 120 MB a frame) go in PART-sized pieces
+  const API = 'https://upload.gosforthskies.co.uk', MAX = 2e9, SMALL = 90e6, PART = 50 * 1024 * 1024, form = document.getElementById('send');
+  const drop = document.getElementById('drop'), pick = document.getElementById('folder'), go = document.getElementById('go');
+  const picked = document.getElementById('picked'), status = document.getElementById('status');
+  const bar = form.querySelector('.bar'), fill = bar.firstElementChild;
+  let files = [];
+  const gb = (n) => (n / 1e9).toFixed(2) + ' GB';
+  const say = (t, err) => { status.textContent = t; status.classList.toggle('err', !!err); };
+  function choose(list) {
+    const fits = list.filter((f) => /\.(fit|fits|fts|xisf)$/i.test(f.name));
+    // named frames (Seestar, NINA, ASIAIR...): send the lights and their calibration frames, skip anything else
+    // (on a Seestar that skips the app's stacked result); a folder of unnamed frames goes as it is
+    const named = fits.filter((f) => /^(light|dark|flat|bias|offset|darkflat|flatdark)/i.test(f.name));
+    files = fits.some((f) => /^light/i.test(f.name)) ? named : fits;
+    // frames are stored by name, so two files with the same name in different subfolders (NINA's per-filter flats:
+    // Flats/Ha/Flat_0001.fits and Flats/OIII/Flat_0001.fits) would overwrite each other: those get their subfolders
+    // added to the name. Unique names go as they are, so a restarted upload still recognises what already arrived.
+    const count = {};
+    files.forEach((f) => { count[f.name] = (count[f.name] || 0) + 1; });
+    files.forEach((f) => {
+      const parts = (f.rel || f.webkitRelativePath || f.name).split('/').filter(Boolean);
+      f.sendName = count[f.name] > 1 && parts.length > 2 ? parts.slice(1, -1).join('_') + '_' + f.name : f.name;
+    });
+    const big = files.filter((f) => f.size > MAX);
+    files = files.filter((f) => f.size <= MAX);
+    const total = files.reduce((t, f) => t + f.size, 0);
+    picked.textContent = files.length ? `${files.length} frames, ${gb(total)}` + (big.length ? ` (${big.length} over 2 GB, skipped: email the project about those)` : '')
+                       : big.length ? 'These frames are over 2 GB each, too big for the upload box. Email the project and another way will be sorted.'
+                                    : 'No .fit frames found in that folder.';
+    go.disabled = !files.length;
+  }
+  pick.addEventListener('change', () => choose([...pick.files]));
+  async function walk(entry, out) {
+    if (entry.isFile) { const f = await new Promise((ok, no) => entry.file(ok, no)); f.rel = entry.fullPath; out.push(f); }
+    else if (entry.isDirectory) {
+      const reader = entry.createReader();
+      for (let batch; (batch = await new Promise((ok, no) => reader.readEntries(ok, no))).length; )
+        for (const e of batch) await walk(e, out);
+    }
+  }
+  ['dragenter', 'dragover'].forEach((t) => drop.addEventListener(t, (e) => { e.preventDefault(); drop.classList.add('over'); }));
+  ['dragleave', 'drop'].forEach((t) => drop.addEventListener(t, () => drop.classList.remove('over')));
+  drop.addEventListener('drop', async (e) => {
+    e.preventDefault();
+    const out = [];
+    for (const it of [...e.dataTransfer.items]) { const en = it.webkitGetAsEntry && it.webkitGetAsEntry(); if (en) await walk(en, out); }
+    choose(out);
+  });
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const d = Object.fromEntries(new FormData(form));
+    if (!d.code || !d.name || !d.email || !d.target) return say('Please fill in the invite code, your name, email and target.', true);
+    const H = { 'X-Invite': d.code.trim() };
+    go.disabled = true; bar.hidden = false; fill.style.width = '0';
+    // while sending: ask the browser to keep the screen (and so the computer) awake, and warn before the page is closed
+    let lock = null;
+    try { lock = await navigator.wakeLock?.request('screen'); } catch (err) { /* not offered: carry on without it */ }
+    const leaving = (ev) => { ev.preventDefault(); ev.returnValue = ''; };
+    window.addEventListener('beforeunload', leaving);
+    const settle = () => { window.removeEventListener('beforeunload', leaving); lock?.release().catch(() => {}); };
+    try {
+      const call = async (path, opts = {}) => {
+        const r = await fetch(API + path, { ...opts, headers: { ...H, ...(opts.headers || {}) } });
+        const j = await r.json().catch(() => ({}));
+        if (!r.ok) throw new Error(j.error || `Upload service error ${r.status}`);
+        return j;
+      };
+      say('Starting…');
+      const { set } = await call('/start', { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...d, code: undefined, files: files.map((f) => ({ name: f.sendName, size: f.size })) }) });
+      const have = new Set((await call(`/have?set=${set}`)).names);
+      const todo = files.filter((f) => !have.has(f.sendName.replace(/[^\w .()+-]/g, '')));
+      const total = files.reduce((t, f) => t + f.size, 0);
+      let sent = total - todo.reduce((t, f) => t + f.size, 0), failed = 0, next = 0;
+      const show = () => { fill.style.width = (100 * sent / total).toFixed(1) + '%'; say(`Sending… ${gb(sent)} of ${gb(total)}`); };
+      show();
+      const retry = async (fn) => {
+        for (let tryNo = 1; ; tryNo++) {
+          try { return await fn(); }
+          catch (err) { if (tryNo === 3) throw err; await new Promise((ok) => setTimeout(ok, 2000 * tryNo)); }
+        }
+      };
+      async function sendBig(f) {                     // in parts; each part retried on its own
+        const q = `set=${set}&name=${encodeURIComponent(f.sendName)}`;
+        const { uploadId } = await retry(() => call(`/mpu/start?${q}`, { method: 'POST' }));
+        const parts = [];
+        for (let n = 1, at = 0; at < f.size; n++, at += PART) {
+          const piece = f.slice(at, Math.min(at + PART, f.size));
+          parts.push(await retry(() => call(`/mpu/part?${q}&uploadId=${encodeURIComponent(uploadId)}&n=${n}`, { method: 'PUT', body: piece })));
+          sent += piece.size; show();
+        }
+        await retry(() => call(`/mpu/done?${q}&uploadId=${encodeURIComponent(uploadId)}`, { method: 'POST',
+          headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ parts }) }));
+      }
+      async function worker() {
+        while (next < todo.length) {
+          const f = todo[next++], before = sent;
+          try {
+            if (f.size > SMALL) await sendBig(f);
+            else { await retry(() => call(`/put?set=${set}&name=${encodeURIComponent(f.sendName)}`, { method: 'PUT', body: f })); sent += f.size; show(); }
+          } catch (err) { failed++; sent = before; show(); }
+        }
+      }
+      await Promise.all([worker(), worker(), worker(), worker()]);
+      if (failed) throw new Error(`${failed} frames didn't go. Press Send again and it will carry on where it stopped.`);
+      await call(`/finish?set=${set}`, { method: 'POST' });
+      fill.style.width = '100%';
+      say(`Done: ${files.length} frames received. the project has them and will be in touch.`);
+      settle();
+    } catch (err) { say(err.message, true); go.disabled = false; settle(); }
+  });
+})();
+</script>
