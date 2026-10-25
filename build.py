@@ -1,4 +1,4 @@
-# Builds index.html for the "Orion, together" project site (orion.oneoffx.co.uk).
+# Builds index.html for the "One sky, together" project site (together.oneoffx.co.uk).
 # Words: body.html. Progress figures: progress.json ({{contributors}}, {{hours}}).
 # Styles and the upload box were copied once from the Gosforth Skies site (_css.css, _form.html, _script.html);
 # the upload box talks to the same upload Worker, which allows this site's address.
@@ -17,8 +17,8 @@ page = f'''<!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>Orion, together</title>
-<meta name="description" content="A community astrophotography project: many telescopes, one picture of Orion, credited to everyone who took part.">
+<title>One sky, together</title>
+<meta name="description" content="A community astrophotography project: many telescopes, one picture, credited to everyone who took part.">
 <link rel="stylesheet" href="fonts/fonts.css">
 <style>{(R / '_css.css').read_text(encoding='utf8')}</style>
 </head>
