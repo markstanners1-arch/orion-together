@@ -11,22 +11,36 @@ body = (R / 'body.html').read_text(encoding='utf8')
 body = body.replace('{{form}}', (R / '_form.html').read_text(encoding='utf8'))
 for k, v in p.items():
     body = body.replace('{{' + k + '}}', str(v))
-page = f'''<!doctype html>
+css = (R / '_css.css').read_text(encoding='utf8')
+
+def page(title, desc, body, script=''):
+    return f'''<!doctype html>
 <html lang="en-GB">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex">
-<title>One sky, together</title>
-<meta name="description" content="A community astrophotography project: many telescopes, one picture, credited to everyone who took part.">
+<title>{title}</title>
+<meta name="description" content="{desc}">
 <link rel="stylesheet" href="fonts/fonts.css">
-<style>{(R / '_css.css').read_text(encoding='utf8')}</style>
+<style>{css}</style>
 </head>
 <body>
 {body}
-{(R / '_script.html').read_text(encoding='utf8')}
+{script}
 </body>
 </html>
 '''
-(R / 'index.html').write_text(page, encoding='utf8')
-print('wrote index.html', len(page))
+
+out = {
+    'index.html': page('One sky, together',
+                       'A community astrophotography project: many telescopes, one picture, credited to everyone who took part.',
+                       body, (R / '_script.html').read_text(encoding='utf8')),
+    # served at /spec (GitHub Pages maps /spec to spec.html)
+    'spec.html': page('Submission spec · One sky, together',
+                      'What to shoot and send for the Orion project: target, settings, files, folder names and how to upload.',
+                      (R / 'spec_body.html').read_text(encoding='utf8')),
+}
+for name, html in out.items():
+    (R / name).write_text(html, encoding='utf8')
+    print('wrote', name, len(html))

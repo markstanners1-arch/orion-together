@@ -11,11 +11,14 @@
   const gb = (n) => (n / 1e9).toFixed(2) + ' GB';
   const say = (t, err) => { status.textContent = t; status.classList.toggle('err', !!err); };
   function choose(list) {
-    const fits = list.filter((f) => /\.(fit|fits|fts|xisf)$/i.test(f.name));
+    // FITS frames, DSLR / mirrorless raw files, and small text notes (the spec asks for a notes.txt per session)
+    const fits = list.filter((f) => /\.(fit|fits|fts|xisf|cr2|cr3|nef|arw)$/i.test(f.name));
+    const notes = list.filter((f) => /\.txt$/i.test(f.name) && f.size <= 1e6);
     // named frames (Seestar, NINA, ASIAIR...): send the lights and their calibration frames, skip anything else
     // (on a Seestar that skips the app's stacked result); a folder of unnamed frames goes as it is
     const named = fits.filter((f) => /^(light|dark|flat|bias|offset|darkflat|flatdark)/i.test(f.name));
-    files = fits.some((f) => /^light/i.test(f.name)) ? named : fits;
+    const frames = fits.some((f) => /^light/i.test(f.name)) ? named : fits;
+    files = frames.length ? [...frames, ...notes] : [];
     // frames are stored by name, so two files with the same name in different subfolders (NINA's per-filter flats:
     // Flats/Ha/Flat_0001.fits and Flats/OIII/Flat_0001.fits) would overwrite each other: those get their subfolders
     // added to the name. Unique names go as they are, so a restarted upload still recognises what already arrived.
@@ -28,9 +31,10 @@
     const big = files.filter((f) => f.size > MAX);
     files = files.filter((f) => f.size <= MAX);
     const total = files.reduce((t, f) => t + f.size, 0);
-    picked.textContent = files.length ? `${files.length} frames, ${gb(total)}` + (big.length ? ` (${big.length} over 2 GB, skipped: email the project about those)` : '')
+    const nNotes = files.filter((f) => /\.txt$/i.test(f.name)).length, nFrames = files.length - nNotes;
+    picked.textContent = files.length ? `${nFrames} frames` + (nNotes ? ` + ${nNotes} notes file${nNotes > 1 ? 's' : ''}` : '') + `, ${gb(total)}` + (big.length ? ` (${big.length} over 2 GB, skipped: email the project about those)` : '')
                        : big.length ? 'These frames are over 2 GB each, too big for the upload box. Email the project and another way will be sorted.'
-                                    : 'No .fit frames found in that folder.';
+                                    : 'No frames found in that folder (FITS or camera raw: .fit, .fits, .CR2, .CR3, .NEF, .ARW). A zip won\'t work: choose the folder itself.';
     go.disabled = !files.length;
   }
   pick.addEventListener('change', () => choose([...pick.files]));

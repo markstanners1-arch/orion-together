@@ -137,3 +137,31 @@ html { scroll-behavior: smooth; }
 @media (max-width: 480px) { .tally { gap: 8px; } .tally div { padding: 10px; } .tally b { font-size: 1.35rem; white-space: nowrap; } .tally span { font-size: 0.68rem; } }
 ul.plain { margin: 20px 0 0; padding-left: 20px; display: grid; gap: 8px; max-width: 720px; color: var(--ink); }
 .note { margin-top: 18px; font-size: 0.88rem; color: var(--dim); }
+
+/* submission spec page (spec.html, built from spec_body.html) */
+.doc > * + * { margin-top: 16px; }
+.doc > h2 { margin-top: 10px; }
+.doc > h3 { margin-top: 32px; }
+.mono { font-family: var(--font-data); font-size: 0.9em; }
+.tbl { margin-top: 24px; overflow-x: auto; max-width: 880px; border: 1px solid var(--rule); border-radius: 8px; background: var(--deep); }
+.tbl table { width: 100%; border-collapse: collapse; font-size: 0.93rem; line-height: 1.5; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: 11px 14px; border-top: 1px solid var(--rule); }
+.tbl thead th { border-top: 0; font: 500 0.72rem/1.3 var(--font-data); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ha); background: var(--sky); }
+.tbl tbody th { font-weight: 600; white-space: nowrap; color: var(--ink); }
+.tbl td { color: var(--ink); }
+.tbl table.split td { width: 50%; }
+.tbl table.split td + td { color: var(--dim); }
+.tbl table.wide { min-width: 640px; }
+.tbl table.wide tbody th { white-space: normal; width: 22%; }
+@media (max-width: 560px) { .tbl tbody th { white-space: normal; } .tbl th, .tbl td { padding: 9px 10px; } }
+ol.plain { margin: 20px 0 0; padding-left: 22px; display: grid; gap: 8px; max-width: 720px; }
+.pattern code { font-size: 1rem; padding: 6px 10px; }
+.uplink { padding: 14px 16px; border: 1px solid var(--ha); border-radius: 8px; background: var(--deep); max-width: 720px; }
+.faq { margin: 20px 0 0; display: grid; gap: 6px; max-width: 720px; }
+.faq dt { font-weight: 600; margin-top: 12px; }
+.faq dd { margin: 0; color: var(--dim); }
+/* "read the spec first" link above the upload box */
+.specfirst { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 28px; max-width: 760px; padding: 16px 18px; border-radius: 8px; background: var(--deep); border: 1px solid var(--oiii); }
+.specfirst a { font-weight: 600; font-size: 1.05rem; }
+.specfirst a::after { content: " \2192"; color: var(--ha); }
+.specfirst span { color: var(--dim); font-size: 0.9rem; }

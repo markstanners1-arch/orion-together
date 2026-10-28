@@ -146,6 +146,34 @@ html { scroll-behavior: smooth; }
 @media (max-width: 480px) { .tally { gap: 8px; } .tally div { padding: 10px; } .tally b { font-size: 1.35rem; white-space: nowrap; } .tally span { font-size: 0.68rem; } }
 ul.plain { margin: 20px 0 0; padding-left: 20px; display: grid; gap: 8px; max-width: 720px; color: var(--ink); }
 .note { margin-top: 18px; font-size: 0.88rem; color: var(--dim); }
+
+/* submission spec page (spec.html, built from spec_body.html) */
+.doc > * + * { margin-top: 16px; }
+.doc > h2 { margin-top: 10px; }
+.doc > h3 { margin-top: 32px; }
+.mono { font-family: var(--font-data); font-size: 0.9em; }
+.tbl { margin-top: 24px; overflow-x: auto; max-width: 880px; border: 1px solid var(--rule); border-radius: 8px; background: var(--deep); }
+.tbl table { width: 100%; border-collapse: collapse; font-size: 0.93rem; line-height: 1.5; }
+.tbl th, .tbl td { text-align: left; vertical-align: top; padding: 11px 14px; border-top: 1px solid var(--rule); }
+.tbl thead th { border-top: 0; font: 500 0.72rem/1.3 var(--font-data); letter-spacing: 0.1em; text-transform: uppercase; color: var(--ha); background: var(--sky); }
+.tbl tbody th { font-weight: 600; white-space: nowrap; color: var(--ink); }
+.tbl td { color: var(--ink); }
+.tbl table.split td { width: 50%; }
+.tbl table.split td + td { color: var(--dim); }
+.tbl table.wide { min-width: 640px; }
+.tbl table.wide tbody th { white-space: normal; width: 22%; }
+@media (max-width: 560px) { .tbl tbody th { white-space: normal; } .tbl th, .tbl td { padding: 9px 10px; } }
+ol.plain { margin: 20px 0 0; padding-left: 22px; display: grid; gap: 8px; max-width: 720px; }
+.pattern code { font-size: 1rem; padding: 6px 10px; }
+.uplink { padding: 14px 16px; border: 1px solid var(--ha); border-radius: 8px; background: var(--deep); max-width: 720px; }
+.faq { margin: 20px 0 0; display: grid; gap: 6px; max-width: 720px; }
+.faq dt { font-weight: 600; margin-top: 12px; }
+.faq dd { margin: 0; color: var(--dim); }
+/* "read the spec first" link above the upload box */
+.specfirst { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-top: 28px; max-width: 760px; padding: 16px 18px; border-radius: 8px; background: var(--deep); border: 1px solid var(--oiii); }
+.specfirst a { font-weight: 600; font-size: 1.05rem; }
+.specfirst a::after { content: " \2192"; color: var(--ha); }
+.specfirst span { color: var(--dim); font-size: 0.9rem; }
 </style>
 </head>
 <body>
@@ -215,7 +243,7 @@ ul.plain { margin: 20px 0 0; padding-left: 20px; display: grid; gap: 8px; max-wi
       <dt>Filters</dt><dd>Any: no filter, light-pollution or dual-band. Just say which when you upload</dd>
       <dt>Core frames</dt><dd>For M42: optional but valuable, 20–50 short frames (5–10 s) for the bright core, which burns out in long exposures</dd>
       <dt>When</dt><dd>Through the winter. The darkest runs are about 4–13 Nov, 2–12 Dec, 30 Dec – 9 Jan, 1–10 Feb and 3–12 Mar; filtered frames are fine in moonlight</dd>
-      <dt>Files</dt><dd>Your individual frames as FITS files (.fit or .fits), not the telescope's own stacked picture. Flats help a lot if you have them</dd>
+      <dt>Files</dt><dd>Your individual frames as FITS files (.fit or .fits) or camera raw files (.CR2, .CR3, .NEF, .ARW), not the telescope's own stacked picture. Flats help a lot if you have them</dd>
     </dl>
   </div>
 </section>
@@ -225,6 +253,7 @@ ul.plain { margin: 20px 0 0; padding-left: 20px; display: grid; gap: 8px; max-wi
     <p class="eyebrow">Sending your frames</p>
     <h2>How to <em>take part</em></h2>
     <p style="max-width:720px; margin-top:14px">Uploads open once the target is agreed; the project code will be shared then. Put <code>Together</code> plus the target and your part (for Orion: M42, Horsehead, wide field…) as the target. Another night or a set of short core frames can go in a second upload with the same name and target.</p>
+    <p class="specfirst"><a href="spec">Read the submission spec first</a><span>What to shoot, which files to send and how to name the folders.</span></p>
     <form class="send" id="send" novalidate>
       <h3 id="upload">Send your frames</h3>
       <div class="fields">
@@ -237,7 +266,7 @@ ul.plain { margin: 20px 0 0; padding-left: 20px; display: grid; gap: 8px; max-wi
       </div>
       <label class="drop" id="drop">
         <b>Choose the folder of frames</b>
-        <span>or drag it here. Only the <code>.fit</code> frames are sent, with any darks, flats and bias.</span>
+        <span>or drag it here, no need to zip. The FITS or camera raw frames (<code>.fit</code>, <code>.CR2</code>, <code>.NEF</code>…) are sent, with any darks, flats, bias and <code>notes.txt</code>.</span>
         <input type="file" id="folder" webkitdirectory multiple hidden>
       </label>
       <p class="sendmsg" id="picked">No folder chosen yet.</p>
@@ -299,11 +328,14 @@ ul.plain { margin: 20px 0 0; padding-left: 20px; display: grid; gap: 8px; max-wi
   const gb = (n) => (n / 1e9).toFixed(2) + ' GB';
   const say = (t, err) => { status.textContent = t; status.classList.toggle('err', !!err); };
   function choose(list) {
-    const fits = list.filter((f) => /\.(fit|fits|fts|xisf)$/i.test(f.name));
+    // FITS frames, DSLR / mirrorless raw files, and small text notes (the spec asks for a notes.txt per session)
+    const fits = list.filter((f) => /\.(fit|fits|fts|xisf|cr2|cr3|nef|arw)$/i.test(f.name));
+    const notes = list.filter((f) => /\.txt$/i.test(f.name) && f.size <= 1e6);
     // named frames (Seestar, NINA, ASIAIR...): send the lights and their calibration frames, skip anything else
     // (on a Seestar that skips the app's stacked result); a folder of unnamed frames goes as it is
     const named = fits.filter((f) => /^(light|dark|flat|bias|offset|darkflat|flatdark)/i.test(f.name));
-    files = fits.some((f) => /^light/i.test(f.name)) ? named : fits;
+    const frames = fits.some((f) => /^light/i.test(f.name)) ? named : fits;
+    files = frames.length ? [...frames, ...notes] : [];
     // frames are stored by name, so two files with the same name in different subfolders (NINA's per-filter flats:
     // Flats/Ha/Flat_0001.fits and Flats/OIII/Flat_0001.fits) would overwrite each other: those get their subfolders
     // added to the name. Unique names go as they are, so a restarted upload still recognises what already arrived.
@@ -316,9 +348,10 @@ ul.plain { margin: 20px 0 0; padding-left: 20px; display: grid; gap: 8px; max-wi
     const big = files.filter((f) => f.size > MAX);
     files = files.filter((f) => f.size <= MAX);
     const total = files.reduce((t, f) => t + f.size, 0);
-    picked.textContent = files.length ? `${files.length} frames, ${gb(total)}` + (big.length ? ` (${big.length} over 2 GB, skipped: email the project about those)` : '')
+    const nNotes = files.filter((f) => /\.txt$/i.test(f.name)).length, nFrames = files.length - nNotes;
+    picked.textContent = files.length ? `${nFrames} frames` + (nNotes ? ` + ${nNotes} notes file${nNotes > 1 ? 's' : ''}` : '') + `, ${gb(total)}` + (big.length ? ` (${big.length} over 2 GB, skipped: email the project about those)` : '')
                        : big.length ? 'These frames are over 2 GB each, too big for the upload box. Email the project and another way will be sorted.'
-                                    : 'No .fit frames found in that folder.';
+                                    : 'No frames found in that folder (FITS or camera raw: .fit, .fits, .CR2, .CR3, .NEF, .ARW). A zip won\'t work: choose the folder itself.';
     go.disabled = !files.length;
   }
   pick.addEventListener('change', () => choose([...pick.files]));

@@ -1,0 +1,162 @@
+<div class="wrap">
+  <header class="top">
+    <a class="brand" href="./">One sky, <span>together</span></a>
+    <nav class="nav" aria-label="Sections">
+      <a href="#target">Target</a><a href="#capture">Capture</a><a href="#send">What to send</a><a href="#folders">Folders</a><a href="#how">How to send</a><a href="#scopes">By scope</a><a href="#faq">FAQ</a><a href="./#upload">Upload</a>
+    </nav>
+  </header>
+</div>
+
+<section id="top" style="border-top:0; padding-top:clamp(24px, 5vw, 56px)">
+  <div class="wrap doc">
+    <p class="eyebrow">Orion project · 28 Oct 2026 · Mark Stanners</p>
+    <h1>Data submission <em>spec</em></h1>
+    <p class="lede" style="margin-top:14px">The Orion project pools data from many small scopes into one deep image. Every contributor sends raw frames; one person stacks and processes the lot. The more hours of usable data we collect, the deeper the final image.</p>
+    <p>This sheet says exactly what to send so your frames can go straight into the stack. Frames that don't follow it may have to be left out, not because the data is bad but because it can't be registered or calibrated against everyone else's.</p>
+    <div class="tally" aria-label="Key dates">
+      <div><b>M42</b><span>the target</span></div>
+      <div><b>Nov–Jan</b><span>collection runs</span></div>
+      <div><b>10 Jan</b><span>deadline, 2027</span></div>
+    </div>
+    <p class="note">Collection runs from early November 2026 to early January 2027.</p>
+  </div>
+</section>
+
+<section id="target">
+  <div class="wrap doc">
+    <p class="eyebrow">Target and framing</p>
+    <h2>M42, the <em>Orion Nebula</em></h2>
+    <p>Centre on the Trapezium (<span class="mono">RA 05h 35m 17s, Dec −05° 23′ 28″, J2000</span>). Keep the Running Man (NGC 1977) in the field if your scope can; it will be in most Dwarf and Seestar frames anyway.</p>
+    <ul class="plain">
+      <li>Centring matters more than rotation. The stack is registered on stars, so any orientation works, but a frame centred a degree off loses most of its overlap.</li>
+      <li>Don't crop, mosaic or pan. One fixed field per session.</li>
+      <li>Don't rotate the field mid-session to "tidy" the framing. Leave it where the goto puts it.</li>
+      <li>If your app offers a framing or mosaic mode, turn it off.</li>
+    </ul>
+  </div>
+</section>
+
+<section id="capture">
+  <div class="wrap doc">
+    <p class="eyebrow">What to capture</p>
+    <h2>Short subs, <em>lots of them</em></h2>
+    <p>M42's core saturates fast; we recover the Trapezium from the short frames and the faint outer nebula from the sheer number of subs.</p>
+    <div class="tbl"><table>
+      <thead><tr><th scope="col">Setting</th><th scope="col">What to use</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Sub length</th><td>10 s to 30 s (smart scopes: whatever your app offers in that range)</td></tr>
+        <tr><th scope="row">Filter</th><td>Broadband (no filter, UV/IR cut) for most sessions. If you have a dual-band filter, run it as a separate session and keep the files apart</td></tr>
+        <tr><th scope="row">Gain / ISO</th><td>Your scope's default or unity gain. Don't change it between sessions</td></tr>
+        <tr><th scope="row">Binning</th><td>1×1</td></tr>
+        <tr><th scope="row">Minimum per session</th><td>30 minutes of kept subs. Shorter sessions are fine but tell us</td></tr>
+        <tr><th scope="row">Session count</th><td>As many clear nights as you can manage. Ten sessions of 45 minutes beats one of 4 hours</td></tr>
+        <tr><th scope="row">Moon</th><td>Avoid the three nights either side of full Moon for broadband. Dual-band is fine any time</td></tr>
+      </tbody>
+    </table></div>
+    <h3>Calibration frames</h3>
+    <p>If your scope lets you take them:</p>
+    <ul class="plain">
+      <li><b>Darks:</b> 20 or more, same sub length, gain and sensor temperature as your lights, taken the same night or in the same week.</li>
+      <li><b>Flats:</b> 20 or more, taken without moving the scope or changing focus. T-shirt or dawn-sky flats both work.</li>
+      <li><b>Bias:</b> 50 or more, only if you aren't sending dark-flats.</li>
+    </ul>
+    <p class="note">Dwarf and Seestar users: your scope calibrates internally. Skip this bit.</p>
+  </div>
+</section>
+
+<section id="send">
+  <div class="wrap doc">
+    <p class="eyebrow">What to send</p>
+    <h2>Raw frames, <em>every one</em></h2>
+    <p>Send the raw sub-exposures as FITS, every one your scope kept. That is the only format that goes straight into the stack.</p>
+    <div class="tbl"><table class="split">
+      <thead><tr><th scope="col">Send</th><th scope="col">Don't send</th></tr></thead>
+      <tbody>
+        <tr><td>Raw light frames, FITS (<code>.fits</code> / <code>.fit</code>)</td><td>JPEGs or PNGs of any kind</td></tr>
+        <tr><td>Calibration frames, FITS, if you took them</td><td>Your scope's live-stacked image (the pretty one the app shows you)</td></tr>
+        <tr><td>Raw DSLR files (<code>.CR2</code>, <code>.CR3</code>, <code>.NEF</code>, <code>.ARW</code>) if you shoot a camera</td><td>Stacked or processed TIFFs</td></tr>
+        <tr><td></td><td>Frames you've already cropped, debayered or stretched</td></tr>
+        <tr><td></td><td>Screenshots</td></tr>
+      </tbody>
+    </table></div>
+    <p>Why: a stacked image has already been aligned, averaged and usually stretched. It can't be weighted against other people's data and it throws away the per-frame information we need to reject satellites, clouds and bad tracking.</p>
+    <p>If you also want to share your own processed image, lovely, but send it separately and label it as such.</p>
+  </div>
+</section>
+
+<section id="folders">
+  <div class="wrap doc">
+    <p class="eyebrow">Folders and naming</p>
+    <h2>One folder <em>per session</em></h2>
+    <p>Don't rename the FITS files themselves; the scope's own names and headers are fine. Just put each session in its own folder named like this:</p>
+    <p class="pattern"><code>YourName_Scope_YYYY-MM-DD_Filter</code></p>
+    <p>Examples:</p>
+    <ul class="plain mono">
+      <li>AlistairB_ZWO2600MC_2026-11-14_Broadband</li>
+      <li>MarkS_SeestarS50_2026-11-14_DualBand</li>
+      <li>JoeT_DwarfIII_2026-11-20_Broadband</li>
+    </ul>
+    <p>Inside that folder, if you have calibration frames, use sub-folders <code>lights</code>, <code>darks</code>, <code>flats</code>, <code>bias</code>. Smart-scope users just drop the FITS straight in.</p>
+    <p>One session folder per night per filter. Two nights = two folders. Broadband and dual-band on the same night = two folders.</p>
+    <p>Add a short <code>notes.txt</code> in the folder if anything was unusual: dew, high cloud, a wobbly tripod, a street light, a changed gain. We'd rather know than guess.</p>
+  </div>
+</section>
+
+<section id="how">
+  <div class="wrap doc">
+    <p class="eyebrow">How to send it</p>
+    <h2>Send as <em>you go</em></h2>
+    <p><b>Deadline for all data: 10 Jan 2027.</b> Send sessions as you go rather than saving them up; it spreads the load and lets us flag a problem early.</p>
+    <ol class="plain">
+      <li>Choose the session folder in the upload box (link below), or drag it in. No need to zip it: the box sends the frames, any darks, flats and bias in their sub-folders, and your <code>notes.txt</code>. Don't paste frames into WhatsApp or email; they get recompressed.</li>
+      <li>Drop a one-line message in the group when it's up: name, date, how many subs.</li>
+    </ol>
+    <p class="uplink"><b>Upload link:</b> <a href="./#upload">together.oneoffx.co.uk/#upload</a></p>
+    <p class="note">A typical Dwarf III session of 45 minutes at 15 s is about 180 files and 2 to 3 GB. If your upload is painfully slow, say so and we'll sort a drive or memory stick.</p>
+  </div>
+</section>
+
+<section id="scopes">
+  <div class="wrap doc">
+    <p class="eyebrow">Notes by scope</p>
+    <h2>Where your <em>raw frames</em> are</h2>
+    <div class="tbl"><table class="wide">
+      <thead><tr><th scope="col">Scope</th><th scope="col">Where the raw FITS are</th><th scope="col">Things to set</th></tr></thead>
+      <tbody>
+        <tr><th scope="row">Dwarf II / III / Dwarf mini</th><td>On the scope's storage under <code>Astronomy/DWARF_RAW_...</code> per session. Pull them off by USB or the app's file browser, not the gallery</td><td>Turn on "save raw FITS" (off by default on some firmware). Use 10 s or 15 s subs, gain 60 to 80. Leave EQ mode on if you use it</td></tr>
+        <tr><th scope="row">Seestar S30 / S50</th><td>Enable "Save each frame" in Advanced settings. Files land in <code>MyWorks/&lt;target&gt;/&lt;target&gt;_sub</code> on the scope</td><td>Sub length 10 s. Turn off the AI denoise and auto-stretch for the saved frames (they only affect the preview, but check). Dual-band filter sessions go in their own folder</td></tr>
+        <tr><th scope="row">ZWO ASIAIR + cooled camera</th><td>Wherever ASIAIR saves lights; copy the whole Autorun folder</td><td>Bin 1, gain at unity or your usual. Take darks, flats and bias. Note the sensor temperature in <code>notes.txt</code></td></tr>
+        <tr><th scope="row">DSLR / mirrorless on a tracker</th><td>Raw camera files straight off the card</td><td>ISO 800 to 1600, 15 s to 30 s depending on tracking. Shoot flats and bias. Don't use in-camera noise reduction</td></tr>
+        <tr><th scope="row">Draco or other smart scopes</th><td>Check your app for a "save subs" or "export raw" option</td><td>If it only exports stacked or JPEG output, tell us before you spend a night on it</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">Not sure where your raw frames are? Ask in the group before your first session. Ten minutes of checking saves a wasted clear night.</p>
+  </div>
+</section>
+
+<section id="faq">
+  <div class="wrap doc">
+    <p class="eyebrow">FAQ</p>
+    <h2>Common <em>questions</em></h2>
+    <dl class="faq">
+      <dt>My scope is tiny / my sky is awful / I only got 20 minutes. Is it worth sending?</dt>
+      <dd>Yes. Weighting handles it. A short noisy session still adds signal; a session that never gets sent adds nothing.</dd>
+      <dt>I had thin cloud for part of the night.</dt>
+      <dd>Send it all. Frame rejection picks out the bad subs better than you can by eye, and the good ones are still useful.</dd>
+      <dt>Can I send a session I shot before November?</dt>
+      <dd>Yes, if it's raw FITS of the same target and you can say roughly when and with what.</dd>
+      <dt>Will my name be on the final image?</dt>
+      <dd>Every contributor is credited with their scope and total integration time.</dd>
+      <dt>I don't know what any of this means.</dt>
+      <dd>That's fine. Post in the group or message Mark and we'll walk through it. The only thing that can't be fixed afterwards is a night spent saving the wrong kind of file.</dd>
+    </dl>
+  </div>
+</section>
+
+<div class="wrap">
+  <footer>
+    <p>One sky, together: a community astrophotography project. Processing: Mark Stanners.</p>
+    <p>Contact: <a href="mailto:mark@gosforthskies.co.uk">mark@gosforthskies.co.uk</a></p>
+    <p><a href="./">Back to the project page</a> · <a href="./#privacy">Privacy</a></p>
+  </footer>
+</div>
